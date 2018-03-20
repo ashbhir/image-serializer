@@ -8,7 +8,7 @@ Features:
 # Why not Lazy Load?
 There might be use cases where you'd want to lazy load images (loading images as and when they come into viewport). But the problem with lazy loading is that you waste that crucial seconds when user is ideal and not engaged in any activity (not scrolling). Images could have been loaded in that ideal time instead of waiting to come into viewport.
 
-Also, personally it seems a bit absrubtive to me seeing a placeholder everytime I browse through an image.
+Also, personally it seems a bit abrupt to me seeing a placeholder everytime I browse through an image.
 
 If you don't know the order in which user might see images on your site (whether he scrolls down or slides through an image slider), I would recommend you go for lazy loading instead.
 
