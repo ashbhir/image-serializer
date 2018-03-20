@@ -72,7 +72,7 @@ class ImageQueue {
     }
 }
 
-class ImageLoader extends Component {
+class ImageSerializer extends Component {
     constructor(props) {
         super(props);
         if (!window.imageQ) {
@@ -103,4 +103,4 @@ class ImageLoader extends Component {
     }
 }
 
-export default ImageLoader;
+export default ImageSerializer;
