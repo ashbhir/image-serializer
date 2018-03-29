@@ -1,0 +1,53 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true,
+        "jasmine": true
+    },
+    "extends": "airbnb",
+    "globals": {
+        "executeVwoTrackingCode": true,
+        "jest": true,
+        "environment": true
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true,
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "jsx-a11y",
+        "import",
+        "babel"
+    ],
+    "rules": {
+        "react/jsx-indent-props": ["error", 4],
+        "react/jsx-indent": ["error", 4],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
+        "comma-dangle": ["error", "only-multiline"],
+        "react/no-unknown-property": ["error", { "ignore": ["class"] }],
+        "react/forbid-prop-types": ["warn", { "forbid": ["array", "object"] }],
+        "no-underscore-dangle": 0,
+        "max-len": ["error", 100, 4, {
+            "ignoreUrls": true,
+            "ignoreComments": false,
+            "ignoreStrings": true,
+            "ignoreTemplateLiterals": true,
+            "ignorePattern": "(class(Name)|imgClasses|loaderClasses)?="
+        }],
+        "quote-props": ["error"],
+        "no-shadow": "off",
+        "import/no-extraneous-dependencies": [
+            "error",
+            {
+                "devDependencies": [
+                    "**/tests/**/*.jsx"
+                ]
+            }
+        ]
+    }
+}

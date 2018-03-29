@@ -1,34 +1,126 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
 
-import ImageSerializer from './components/image-serializer';
-
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <div>
-          <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520594932_AK_2622_web.jpg" placeholder="0" order="1" afterReady/>
-          <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520591605_AB-2254-web.jpg" placeholder="0" order="1"/>
-          <ImageSerializer src="https://grofers.com/images/banners/default-banner-db44597.jpg" placeholder="0" order="1"/> 
-        </div>
-        
-        <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520750513_Spoon_web.jpg" placeholder="0" order="2"/>
-        <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520485014_SSD_March_Paytm_web.jpg" placeholder="0" order="2"/>
-        <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520483056_SSD_March_web.jpg" placeholder="0" order="2"/>
-        <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520484853_SSD_March_Mobikwik_web.jpg" placeholder="0" order="3" lazy/>
-        <ImageSerializer src="//cdn.grofers.com/app/images/promotions/merchant/1520594932_AK_2622_web.jpg" placeholder="0" order="3"/>
-      </div>
-    );
-  }
+const IMG_STATE = {
+    idle: 0,
+    loading: 1,
+    loaded: 2
 }
 
-export default App;
+class ImageQueue {
+    constructor() {
+        // all images should be unique in a single order
+        this.imageQ = [];
+    }
+
+    allImagesLoaded(imgArr) {
+        return imgArr.every((img) => {
+            return img.state === IMG_STATE.loaded
+        })
+    }
+    
+    add(order, imgSrc, onLoad, pImageSrc) {
+        this.imageQ[order] = this.imageQ[order] || [];
+        this.imageQ[order].push({imgSrc, onLoad, state: IMG_STATE.idle});
+        // load the placeholder image first
+        onLoad(pImageSrc);
+        // re-run the loop to check if any additional image needs to be downlaoded
+        this.loopNext();
+    }
+
+    loopNext() {
+        let order = 0;
+        while(this.imageQ[order] === undefined || this.imageQ[order].length === 0 || this.allImagesLoaded(this.imageQ[order])) {
+            order++;
+            if (order > this.imageQ.length) {
+                return;
+            }
+        }
+        const imagesToLoad = this.imageQ[order];
+        imagesToLoad.forEach(({imgSrc, onLoad, state}, imgIdx) => {
+
+            if (state === IMG_STATE.loading || state === IMG_STATE.loaded) return;
+            
+            const image = new Image();
+            image.onload = () => {
+                this.imageQ[order][imgIdx].state = IMG_STATE.loaded;
+                onLoad(imgSrc);
+                
+                if (this.allImagesLoaded(this.imageQ[order])) {
+                    // all images for the given order have now loaded
+                    // start looping for the next order
+                    this.loopNext();
+                }
+            }
+            image.onerror = () => {
+                // TODO: see what can be done if image fails to load
+                this.imageQ[order][imgIdx].state = IMG_STATE.loaded;
+
+                if (this.allImagesLoaded(this.imageQ[order])) {
+                    // all images for the given order have now loaded
+                    // start looping for the next order
+                    this.loopNext();
+                }
+            }
+            image.src = imgSrc;
+            this.imageQ[order][imgIdx].state = IMG_STATE.loading;
+        });
+    }
+}
+
+/**
+ * @name ImageSerializer
+ * @description This class handles the ordering of images
+ * @argument {*} props
+ * @author ashbhir
+ */
+class ImageSerializer extends Component {
+
+    /**
+     * @constructor
+     * @param {*} props
+     */
+    constructor(props) {
+        super(props);
+
+        if (!window.imageQ) {
+            window.imageQ = new ImageQueue();
+        }
+        this.imageQ = window.imageQ;
+        this.onImageLoad = this.onImageLoad.bind(this);
+        
+        this.state = {
+            src: null
+        };
+    }
+
+    /**
+     * @name onImageLoad
+     * @param {*} src
+     * @method ImageSerializer
+     */
+    onImageLoad(src) {
+        this.setState({src});
+    }
+
+    /**
+     * @name componentDidMount
+     * @description Once component successfully mounted add the image to Queue
+     * @method ImageSerializer
+     */
+    componentDidMount() {
+        this.imageQ.add(this.props.order, this.props.src, this.onImageLoad, this.props.placeholder);
+    }
+
+    /**
+     * @name render
+     * @description renders the component
+     * @method ImageSerializer
+     */
+    render() {
+        return (
+            <img src={this.state.src} alt={this.props.alt}/>
+        )
+    }
+}
+
+export default ImageSerializer;
